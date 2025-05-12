@@ -29,7 +29,7 @@ public class Client {
                 System.out.print("Ingrese una opción: ");
 
                 if (sc.hasNextInt()) {
-                    opcion = sc.nextInt();
+                    opcion = sc.nextInt();// hola
                     sc.nextLine(); 
                 } else {
                     System.out.println("Debes ingresar un número válido.");
