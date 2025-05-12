@@ -63,12 +63,12 @@ public class Client {
     // Método para listar los juegos registrados
     private void listarJuegos() {
         try {
-            ArrayList<Juego> juegos = server.obtenerJuegos(); // Llamamos al método obtenerJuegos()
+            ArrayList<Juego> games = server.obtenerJuegos(); // Llamamos al método obtenerJuegos()
             System.out.println("\n--- Juegos Registrados ---");
-            if (juegos.isEmpty()) {
+            if (games.isEmpty()) {
                 System.out.println("No hay juegos registrados.");
             } else {
-                for (Juego j : juegos) {
+                for (Juego j : games) {
                     System.out.println("- " + j.getNombre() + " (ID: " + j.getId() + ")");
                 }
             }
@@ -84,10 +84,10 @@ public class Client {
             String nombre = sc.nextLine();
 
             // Creamos un objeto Juego con el nombre ingresado
-            Juego nuevoJuego = new Juego(nombre, 0);
+            Juego newGames = new Juego(nombre, 0);
 
             // Llamamos al método del servidor para agregar el juego
-            server.agregarJuego(nuevoJuego);
+            server.agregarJuego(newGames);
             System.out.println("Juego añadido exitosamente.");
         } catch (Exception e) {
             System.err.println("Error al agregar juego: " + e.getMessage());

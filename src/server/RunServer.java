@@ -13,6 +13,6 @@ public class RunServer {
         registry.bind("server", server);
 
         System.out.println("Servidor arriba!!");
-        System.out.println(server.getPersona());
+        System.out.println(server.obtenerJuegos());
     }
 }
