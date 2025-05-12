@@ -5,6 +5,7 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public interface InterfazDeServer extends Remote {
-	ArrayList<Persona> getPersona() throws RemoteException;
-	void agregarPersona(Persona p) throws RemoteException;;
+	ArrayList<Juego> obtenerJuegos() throws RemoteException;
+    void agregarJuego(Juego juego) throws RemoteException;
+    void eliminarJuego(String nombre) throws RemoteException;
 }

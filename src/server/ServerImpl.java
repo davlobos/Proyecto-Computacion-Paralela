@@ -10,10 +10,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import common.InterfazDeServer;
-import common.Persona;
+import common.Juego;
 
 public class ServerImpl implements InterfazDeServer {
-    private ArrayList<Persona> BD_personas = new ArrayList<>();
+    private ArrayList<Juego> BD_juegos = new ArrayList<>();
 
     public ServerImpl() throws RemoteException {
     	conectarBD();
@@ -22,8 +22,7 @@ public class ServerImpl implements InterfazDeServer {
     }
 
     private void crearBD() {
-        BD_personas.add(new Persona("matias", 27));
-        BD_personas.add(new Persona("maria eugenia", 31));
+        //ACÁ EL EDU PONE COMO LO HIZO Y ADAPTA EL RESTO :)
     }
     
 //del video del profe
@@ -32,7 +31,6 @@ public class ServerImpl implements InterfazDeServer {
     	
     	Connection connection = null;
     	Statement query = null;
-    	PreparedStatement test = null;
     	ResultSet resultados = (null);
     		
     	try {
@@ -50,13 +48,14 @@ public class ServerImpl implements InterfazDeServer {
     		//UPDATE
     		
     		resultados = query.executeQuery(sql);
+    		BD_juegos.clear();
     		
     		while (resultados.next()) {
     			int id = resultados.getInt("id");
     			String nombre = resultados.getString("nombre");
+    			BD_juegos.add(new Juego(nombre,id));
     			
-    			
-    			System.out.println(id + " " + nombre);
+    			System.out.println("cargado: " + id + "-" + nombre);
     		}
         	
         	System.out.println("Conexión con la BD exitosa!");
@@ -68,12 +67,82 @@ public class ServerImpl implements InterfazDeServer {
     	}
     }
 
-    public ArrayList<Persona> getPersona() {
-        return BD_personas;
+    public void agregarJuego(Juego j) throws RemoteException {
+        Connection connection = null;
+        PreparedStatement ps = null;
+
+        try {
+            String url = "jdbc:mysql://localhost:3306/conversion_moneda_steam";
+            String username = "root";
+            String password_BD = "";
+
+            connection = DriverManager.getConnection(url, username, password_BD);
+
+            String sql = "INSERT INTO juegos (nombre) VALUES (?)";
+            ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            ps.setString(1, j.getNombre());
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                int idGenerado = rs.getInt(1);
+                j = new Juego(j.getNombre(),idGenerado);
+                BD_juegos.add(j);
+                System.out.println("Juego agregado: " + idGenerado + " - " + j.getNombre());
+            }
+
+            connection.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Error al agregar juego.");
+        }
     }
 
-    public void agregarPersona(Persona p) throws RemoteException {
-        BD_personas.add(p);
-        System.out.println("Nueva persona agregada: " + p.getNombre());
-    }
+	@Override
+	public ArrayList<Juego> obtenerJuegos() throws RemoteException {
+		// TODO Auto-generated method stub
+		return BD_juegos;
+	}
+
+	@Override
+	public void eliminarJuego(String nombre) throws RemoteException {
+	    Juego juegoAEliminar = null;
+	    for (Juego j : BD_juegos) {
+	        if (j.getNombre().equals(nombre)) {
+	            juegoAEliminar = j;
+	            break;
+	        }
+	    }
+
+	    if (juegoAEliminar != null) {
+	        // Eliminar el juego de la lista
+	        BD_juegos.remove(juegoAEliminar);
+
+	        // Eliminar también de la base de datos
+	        Connection connection = null;
+	        PreparedStatement ps = null;
+	        try {
+	            String url = "jdbc:mysql://localhost:3306/conversion_moneda_steam";
+	            String username = "root";
+	            String password_BD = "";
+
+	            connection = DriverManager.getConnection(url, username, password_BD);
+
+	            String sql = "DELETE FROM juegos WHERE nombre = ?";
+	            ps = connection.prepareStatement(sql);
+	            ps.setString(1, nombre);
+	            ps.executeUpdate();
+
+	            System.out.println("Juego eliminado: " + nombre);
+	            connection.close();
+	        } catch (SQLException e) {
+	            e.printStackTrace();
+	            System.out.println("Error al eliminar juego.");
+	        }
+	    } else {
+	        System.out.println("Juego no encontrado: " + nombre);
+	    }
+	}
+ 
 }

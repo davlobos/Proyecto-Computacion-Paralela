@@ -5,7 +5,7 @@ import java.rmi.registry.Registry;
 import java.util.Scanner;
 import java.util.ArrayList;
 import common.InterfazDeServer;
-import common.Persona;
+import common.Juego;
 
 public class Client {
 
@@ -13,16 +13,18 @@ public class Client {
 
     public void startClient() {
         try {
+            // Conexión con el servidor RMI
             Registry registry = LocateRegistry.getRegistry("localhost", 1009);
             server = (InterfazDeServer) registry.lookup("server");
 
             Scanner sc = new Scanner(System.in);
             int opcion = -1;
 
+            // Menú de opciones
             while (opcion != 0) {
                 System.out.println("\n======= CLIENTE RMI =======");
-                System.out.println("[1] Ver lista de personas");
-                System.out.println("[2] Añadir persona nueva");
+                System.out.println("[1] Ver lista de juegos");
+                System.out.println("[2] Añadir nuevo juego");
                 System.out.println("[0] Finalizar programa");
                 System.out.print("Ingrese una opción: ");
 
@@ -35,12 +37,13 @@ public class Client {
                     continue;
                 }
 
+                // Ejecutar según la opción seleccionada
                 switch (opcion) {
                     case 1:
-                        listarPersonas();
+                        listarJuegos();
                         break;
                     case 2:
-                        agregarPersona(sc);
+                        agregarJuego(sc);
                         break;
                     case 0:
                         System.out.println("Cerrando cliente. ¡Hasta luego!");
@@ -57,51 +60,42 @@ public class Client {
         }
     }
 
-    private void listarPersonas() {
+    // Método para listar los juegos registrados
+    private void listarJuegos() {
         try {
-            ArrayList<Persona> personas = server.getPersona();
-            System.out.println("\n--- Personas Registradas ---");
-            if (personas.isEmpty()) {
-                System.out.println("No hay personas registradas.");
+            ArrayList<Juego> juegos = server.obtenerJuegos(); // Llamamos al método obtenerJuegos()
+            System.out.println("\n--- Juegos Registrados ---");
+            if (juegos.isEmpty()) {
+                System.out.println("No hay juegos registrados.");
             } else {
-                for (Persona p : personas) {
-                    System.out.println("- " + p.getNombre() + " (" + p.getEdad() + " años)");
+                for (Juego j : juegos) {
+                    System.out.println("- " + j.getNombre() + " (ID: " + j.getId() + ")");
                 }
             }
         } catch (Exception e) {
-            System.err.println("💥 Error al obtener lista de personas: " + e.getMessage());
+            System.err.println("💥 Error al obtener lista de juegos: " + e.getMessage());
         }
     }
 
-    private void agregarPersona(Scanner sc) {
+    // Método para agregar un nuevo juego
+    private void agregarJuego(Scanner sc) {
         try {
-            System.out.print("Ingrese nombre: ");
+            System.out.print("Ingrese nombre del juego: ");
             String nombre = sc.nextLine();
 
-            int edad = -1;
-            boolean edadValida = false;
+            // Creamos un objeto Juego con el nombre ingresado
+            Juego nuevoJuego = new Juego(nombre, 0);
 
-            while (!edadValida) {
-                System.out.print("Ingrese edad: ");
-                if (sc.hasNextInt()) {
-                    edad = sc.nextInt();
-                    sc.nextLine();
-                    if (edad >= 0) {
-                        edadValida = true;
-                    } else {
-                        System.out.println("La edad no puede ser negativa.");
-                    }
-                } else {
-                    System.out.println("Debes ingresar un número válido para la edad.");
-                    sc.nextLine(); 
-                }
-            }
-
-            Persona nuevaPersona = new Persona(nombre, edad);
-            server.agregarPersona(nuevaPersona);
-            System.out.println("Persona añadida exitosamente.");
+            // Llamamos al método del servidor para agregar el juego
+            server.agregarJuego(nuevoJuego);
+            System.out.println("Juego añadido exitosamente.");
         } catch (Exception e) {
-            System.err.println("Error al agregar persona: " + e.getMessage());
+            System.err.println("Error al agregar juego: " + e.getMessage());
         }
+    }
+
+    public static void main(String[] args) {
+        Client cliente = new Client();
+        cliente.startClient(); // Iniciar el cliente
     }
 }
