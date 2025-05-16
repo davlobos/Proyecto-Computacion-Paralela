@@ -85,7 +85,7 @@ public class ServerImpl implements InterfazDeServer {
                 juegoAEliminar = j;
                 break;
             }
-        }
+        }  
 
         if (juegoAEliminar != null) {
             BD_juegos.remove(juegoAEliminar);
@@ -106,6 +106,30 @@ public class ServerImpl implements InterfazDeServer {
             System.out.println("Juego no encontrado: " + nombre);
         }
     }
+    
+    @Override
+    public Juego buscarJuego(String nombre) throws RemoteException {
+        try {
+            String sql = "SELECT * FROM games WHERE nombre = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int id = rs.getInt("id_api_game");
+                return new Juego(nombre, id);
+            } else {
+                System.out.println("Juego no encontrado en la BD: " + nombre);
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Error al buscar el juego.");
+            return null;
+        }
+    }
+
 
     public void cerrarConexion() {
         try {

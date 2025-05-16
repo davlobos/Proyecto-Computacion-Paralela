@@ -25,11 +25,12 @@ public class Client {
                 System.out.println("\n======= CLIENTE RMI =======");
                 System.out.println("[1] Ver lista de juegos");
                 System.out.println("[2] Añadir nuevo juego");
+                System.out.println("[3] Buscar juego por nombre");
                 System.out.println("[0] Finalizar programa");
                 System.out.print("Ingrese una opción: ");
 
                 if (sc.hasNextInt()) {
-                    opcion = sc.nextInt();// hola
+                    opcion = sc.nextInt();
                     sc.nextLine(); 
                 } else {
                     System.out.println("Debes ingresar un número válido.");
@@ -45,6 +46,9 @@ public class Client {
                     case 2:
                         agregarJuego(sc);
                         break;
+                    case 3:
+                    	buscarJuego(sc);
+                    	break;
                     case 0:
                         System.out.println("Cerrando cliente. ¡Hasta luego!");
                         break;
@@ -93,6 +97,24 @@ public class Client {
             System.err.println("Error al agregar juego: " + e.getMessage());
         }
     }
+    
+    //Metodo para buscar juego
+    private void buscarJuego(Scanner sc) {
+        try {
+            System.out.print("Ingrese el nombre del juego a buscar: ");
+            String nombre = sc.nextLine();
+
+            Juego juego = server.buscarJuego(nombre);
+            if (juego != null) {
+                System.out.println("Juego encontrado: " + juego.getNombre() + " (ID: " + juego.getId() + ")");
+            } else {
+                System.out.println("No se encontró el juego: " + nombre);
+            }
+        } catch (Exception e) {
+            System.err.println("Error al buscar juego: " + e.getMessage());
+        }
+    }
+
 
     public static void main(String[] args) {
         Client cliente = new Client();
