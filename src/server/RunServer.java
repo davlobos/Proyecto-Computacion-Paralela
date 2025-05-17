@@ -11,9 +11,7 @@ public class RunServer {
         InterfazDeServer server = new ServerImpl();
         Registry registry = LocateRegistry.createRegistry(1009);
         registry.bind("server", server);
-        String prueba = server.getDataFromApi(int id);
-        System.out.println(prueba);
         System.out.println("Servidor arriba!!");
-        System.out.println(server.obtenerJuegos());
+        //System.out.println(server.obtenerJuegos());
     }
 }

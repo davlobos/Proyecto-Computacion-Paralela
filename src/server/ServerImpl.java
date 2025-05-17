@@ -13,11 +13,22 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+
+import org.json.JSONObject;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import common.InterfazDeServer;
 import common.Juego;
+import common.Pais;
+
 
 public class ServerImpl implements InterfazDeServer {
     private ArrayList<Juego> BD_juegos = new ArrayList<>();
+    private ArrayList<Pais> BD_paises = new ArrayList<>();
     private Connection connection = null;
 
     public ServerImpl() throws RemoteException {
@@ -25,17 +36,12 @@ public class ServerImpl implements InterfazDeServer {
         UnicastRemoteObject.exportObject(this, 0);
     }
     
-    
-    @Override
-    public String getDataFromApi(int id) {
-        String output = null;
-         
-        try {
-            // URL de la API REST, el listado de APIs públicas está en: 
-            // https://github.com/juanbrujo/listado-apis-publicas-en-chile
-            URL apiUrl = new URL("https://store.steampowered.com/api/appdetails?appids={id}&cc=cl&l=es");
 
-            // Abre la conexión HTTP
+    @Override
+    public int getDataFromApiSteam(int id_juego, String id_pais) {
+        String output = null;
+        try {        	    		
+    		URL apiUrl = new URL("https://store.steampowered.com/api/appdetails?appids=" + id_juego + "&cc="+ id_pais +"&l=es");	
             HttpURLConnection connection = (HttpURLConnection) apiUrl.openConnection();
 
             // Configura la solicitud (método GET en este ejemplo)
@@ -64,11 +70,41 @@ public class ServerImpl implements InterfazDeServer {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        
+        
+        ObjectMapper objectMapper = new ObjectMapper();
+        
+        try {
+			JsonNode jsonNode = objectMapper.readTree(output);
+			String appIdStr = String.valueOf(id_juego);
+			JsonNode appData = jsonNode.get(appIdStr);
+			if (appData != null) {
+				JsonNode dataNode = appData.get("data");
+				String precio = dataNode.get("price_overview").get("final_formatted").asText(); 
+				// Elimina todo excepto los dígitos
+				
+				String precioLimpio = precio.replaceAll("[^\\d]", "");
+				int preciInt = Integer.parseInt(precioLimpio);
+				
+			
+				
+				return preciInt;
+			}
+			else {
+				System.out.println("appData es null.");
+			}
+		}catch (JsonMappingException e) {
+			e.printStackTrace();
+		}catch (JsonProcessingException e) {
+			e.printStackTrace();	
+		}
+        
+        return 0;
         //Como resultado tenemos un String output que contiene el JSON de la respuesta de la API
-        return output;
     }
     
-
+    
 
     public void conectarBD() {
         try {
@@ -87,11 +123,25 @@ public class ServerImpl implements InterfazDeServer {
             BD_juegos.clear();
 
             while (resultados.next()) {
-                int id = resultados.getInt("id_api_game");
+                int id = resultados.getInt("id");
                 String nombre = resultados.getString("nombre");
                 BD_juegos.add(new Juego(nombre, id));
                 System.out.println("cargado: " + id + "-" + nombre);
             }
+            
+            // Cargar los juegos desde la BD
+            Statement query2 = connection.createStatement();
+            String sql2 = "SELECT * FROM countries";
+            ResultSet resultados2 = query2.executeQuery(sql2);
+            BD_paises.clear();
+
+            while (resultados2.next()) {
+                String id = resultados2.getString("country_code");
+                String nombre = resultados2.getString("country_name");
+                BD_paises.add(new Pais(nombre, id));
+             //   System.out.println("cargado: " + id + "-" + nombre);
+            }
+            
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -103,7 +153,7 @@ public class ServerImpl implements InterfazDeServer {
         PreparedStatement ps = null;
 
         try {
-            String sql = "INSERT INTO juegos (nombre, id_api_game) VALUES (?)";
+            String sql = "INSERT INTO juegos (nombre, id) VALUES (?)";
             ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, j.getNombre());
             ps.executeUpdate();
@@ -113,7 +163,9 @@ public class ServerImpl implements InterfazDeServer {
                 int idGenerado = rs.getInt(1);
                 j = new Juego(j.getNombre(), idGenerado);
                 BD_juegos.add(j);
-                System.out.println("Juego agregado: " + idGenerado + " - " + j.getNombre());
+             //   System.out.println("Juego agregado: " + idGenerado + " - " + j.getNombre());
+                
+                
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -125,6 +177,8 @@ public class ServerImpl implements InterfazDeServer {
     public ArrayList<Juego> obtenerJuegos() throws RemoteException {
         return BD_juegos;
     }
+
+
 
     @Override
     public void eliminarJuego(String nombre) throws RemoteException {
@@ -165,10 +219,12 @@ public class ServerImpl implements InterfazDeServer {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                int id = rs.getInt("id_api_game");
+                int id = rs.getInt("id");
                 return new Juego(nombre, id);
             } else {
                 System.out.println("Juego no encontrado en la BD: " + nombre);
+                
+                
                 return null;
             }
 
@@ -191,4 +247,31 @@ public class ServerImpl implements InterfazDeServer {
             System.out.println("Error al cerrar la conexión.");
         }
     }
+    
+    
+    @Override
+    public Pais buscarPais(String nombre) throws RemoteException {
+        try {
+            String sql = "SELECT * FROM countries WHERE country_name = ?";
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, nombre);
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                String id = rs.getString("country_code");
+                return new Pais(nombre, id);
+            } else {
+                System.out.println("País no encontrado en la BD: " + nombre);
+                return null;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Error al buscar el juego.");
+            return null;
+        }
+    }    
+   
 }
+
+

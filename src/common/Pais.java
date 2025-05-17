@@ -2,25 +2,25 @@ package common;
 
 import java.io.Serializable;
 
-public class Juego implements Serializable {
+public class Pais implements Serializable {
     private String nombre;
-    private int id;
-    
-    public Juego(String nombre, int id) {
+    private String id;
+
+    public Pais(String nombre, String id) {
     	this.id = id;
         this.nombre = nombre;
     }
-    
 
-    public int getId() {
+    public String getId() {
         return id;
     }
+    
 
     public String getNombre() {
         return nombre;
     }
     
-    public void setId(int id) {
+    public void setId(String id) {
         this.id = id;
     }
 
