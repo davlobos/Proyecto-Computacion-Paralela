@@ -100,8 +100,12 @@ public class Client {
             Juego newGames = new Juego(nombre, 0);
 
             // Llamamos al método del servidor para agregar el juego
-            server.agregarJuego(newGames);
-            System.out.println("Juego añadido exitosamente.");
+            newGames = server.agregarJuego(newGames);
+            if (newGames != null) {
+                System.out.println("✅ Juego añadido exitosamente con ID: " + newGames.getId());
+            } else {
+                System.out.println("⚠ El juego no pudo ser añadido.");
+            }
         } catch (Exception e) {
             System.err.println("Error al agregar juego: " + e.getMessage());
         }
@@ -147,7 +151,7 @@ public class Client {
             double precioLocal = server.getDataFromApiSteam(juego.getId(), "cl");
             double precioComparativa = server.getDataFromApiSteam(juego.getId(), pais.getId());
 
-            System.out.println("Precio Local: " + precioLocal);
+            System.out.println("Precio Local (Chile): " + precioLocal);
             System.out.println("Precio en "+ pais.getNombre() + ": " + precioComparativa);            
             
             
@@ -186,7 +190,7 @@ public class Client {
             double precio9 = server.getDataFromApiSteam(juego.getId(), "us");
             
             
-            System.out.println("Precio Local: " + precioLocal);
+            System.out.println("Precio Local (Chile): " + precioLocal);
             System.out.println("Precio en Brasil: " + precio1);
             System.out.println("Precio en Canada: " + precio2);
             System.out.println("Precio en España: " + precio3);

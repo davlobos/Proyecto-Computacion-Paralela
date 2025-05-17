@@ -10,7 +10,6 @@ module Tarea_1_Computacion {
 	exports server;
 	requires java.rmi;
 	requires java.sql;
-	requires org.json;
 	requires java.base;
 	requires com.fasterxml.jackson.databind;
 	requires com.fasterxml.jackson.core;

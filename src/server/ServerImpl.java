@@ -149,11 +149,11 @@ public class ServerImpl implements InterfazDeServer {
         }
     }
 
-    public void agregarJuego(Juego j) throws RemoteException {
+    public Juego agregarJuego(Juego j) throws RemoteException {
         PreparedStatement ps = null;
 
         try {
-            String sql = "INSERT INTO juegos (nombre, id) VALUES (?)";
+            String sql = "INSERT INTO games (nombre) VALUES (?)";
             ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, j.getNombre());
             ps.executeUpdate();
@@ -161,9 +161,10 @@ public class ServerImpl implements InterfazDeServer {
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {
                 int idGenerado = rs.getInt(1);
-                j = new Juego(j.getNombre(), idGenerado);
+                j.setId(idGenerado);
                 BD_juegos.add(j);
-             //   System.out.println("Juego agregado: " + idGenerado + " - " + j.getNombre());
+                System.out.println("✅ Juego agregado a la BD con ID: " + idGenerado);
+                return j;
                 
                 
             }
@@ -171,6 +172,7 @@ public class ServerImpl implements InterfazDeServer {
             e.printStackTrace();
             System.out.println("Error al agregar juego.");
         }
+		return j;
     }
 
     @Override
