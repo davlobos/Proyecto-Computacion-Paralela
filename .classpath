@@ -6,27 +6,22 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - mail.pucv.cl/Documentos/A4-S1-2025/Computacion Paralela y Distribuida/Resources/jackson-annotations-2.14.0.jar">
+	<classpathentry kind="lib" path="lib/jackson-annotations-2.14.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - mail.pucv.cl/Documentos/A4-S1-2025/Computacion Paralela y Distribuida/Resources/jackson-core-2.14.0.jar">
+	<classpathentry kind="lib" path="lib/jackson-core-2.14.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - mail.pucv.cl/Documentos/A4-S1-2025/Computacion Paralela y Distribuida/Resources/mysql-connector-j-8.3.0.jar">
+	<classpathentry kind="lib" path="lib/jackson-databind-2.14.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - mail.pucv.cl/Documentos/A4-S1-2025/Computacion Paralela y Distribuida/Resources/jackson-databind-2.14.0.jar">
-		<attributes>
-			<attribute name="module" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/User/OneDrive - mail.pucv.cl/Documentos/A4-S1-2025/Computacion Paralela y Distribuida/Resources/json-20250107.jar">
+	<classpathentry kind="lib" path="lib/mysql-connector-j-8.3.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
