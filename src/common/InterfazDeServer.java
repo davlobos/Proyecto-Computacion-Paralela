@@ -9,5 +9,6 @@ public interface InterfazDeServer extends Remote {
     void agregarJuego(Juego juego) throws RemoteException;
     void eliminarJuego(String nombre) throws RemoteException;
     public Juego buscarJuego(String nombre) throws RemoteException;
+    String getDataFromApi( int id ) throws RemoteException;
 
 }
