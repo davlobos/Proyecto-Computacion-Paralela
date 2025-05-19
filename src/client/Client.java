@@ -82,9 +82,16 @@ public class Client {
             if (games.isEmpty()) {
                 System.out.println("No hay juegos registrados.");
             } else {
+            	int cont = 0;
                 for (Juego j : games) {
-                    System.out.println("- " + j.getNombre() + " (ID: " + j.getId() + ")");
+                	String nombre = j.getNombre();
+                	int id = j.getId();
+                	cont++;String entrada = String.format(" ● %s (ID: %d)", nombre, id);
+                    System.out.printf(" || %-70s", entrada);
+                	if (cont % 2 == 0)
+                		System.out.println();
                 }
+                System.out.println();
             }
         } catch (Exception e) {
             System.err.println("💥 Error al obtener lista de juegos: " + e.getMessage());
@@ -122,7 +129,9 @@ public class Client {
             Juego juego = server.buscarJuego(nombre);
             
             if (juego != null) {
-                System.out.println("Juego encontrado: " + juego.getNombre() + " (ID: " + juego.getId() + ")");
+            	System.out.println();
+            	System.out.printf("🎮 Juego encontrado: %s (ID: %d)%n", juego.getNombre(), juego.getId());
+            	System.out.println();
             } else {
                 System.out.println("No se encontró el juego: " + nombre);
             }
@@ -152,10 +161,18 @@ public class Client {
             
             double precioLocal = server.getPriceFromApiSteam(juego.getId(), "cl");
             double precioComparativa = server.getPriceFromApiSteam(juego.getId(), pais.getId());
-
-            System.out.println("Precio Local (Chile): $" + precioLocal + " USD");
-            System.out.println("Precio en " + pais.getNombre() + ": $" + precioComparativa + " USD");            
             
+            String texto1 = "💰 Precio Local: $" + precioLocal + " USD";
+            String texto2 = "🌍 Precio en " + pais.getNombre() + ": $" + precioComparativa + " USD";
+
+            int maxAncho = Math.max(texto1.length(), texto2.length());
+
+            texto1 = String.format("%-" + maxAncho + "s", texto1);
+            texto2 = String.format("%-" + maxAncho + "s", texto2);
+
+            System.out.println("\n💱 Comparativa en USD de precios entre el \nPrecio Local (Chile) y " + pais.getNombre() + ":");
+            System.out.println("|| " + texto1 + " ||");
+            System.out.println("|| " + texto2 + " ||\n");
             
             
         } catch (Exception e) {
@@ -190,17 +207,30 @@ public class Client {
             
             
             
-            System.out.println("Comparativa de Precios del juego: " + juego.getNombre());
-            System.out.println("Precio Local (Chile): $" + precioLocal + " USD");
-            System.out.println("Precio en Brasil: $" + precio1 + " USD");
-            System.out.println("Precio en Canada: $" + precio2 + " USD");
-            System.out.println("Precio en España: $" + precio3 + " USD");
-            System.out.println("Precio en Inglaterra: $" + precio4 + " USD");
-            System.out.println("Precio en China: $" + precio5 + " USD");
-            System.out.println("Precio en Mexico: $" + precio6 + " USD");
-            System.out.println("Precio en Turquía: $" + precio7 + " USD");
-            System.out.println("Precio en Australia: $" + precio8 + " USD");
-            System.out.println("Precio en Estados Unidos $: " + precio9 + " USD");
+            
+            System.out.println("\n 🌍 Comparativa en USD de Precios del juego: " + juego.getNombre() + ":");
+            String[] lineas = {
+            	    "💰 Precio Local (Chile): $" + precioLocal + " USD",
+            	    "💰 Precio en Brasil: $" + precio1 + " USD",
+            	    "💰 Precio en Canada: $" + precio2 + " USD",
+            	    "💰 Precio en España: $" + precio3 + " USD",
+            	    "💰 Precio en Inglaterra: $" + precio4 + " USD",
+            	    "💰 Precio en China: $" + precio5 + " USD",
+            	    "💰 Precio en Mexico: $" + precio6 + " USD",
+            	    "💰 Precio en Turquía: $" + precio7 + " USD",
+            	    "💰 Precio en Australia: $" + precio8 + " USD",
+            	    "💰 Precio en Estados Unidos $: " + precio9 + " USD"
+            	};
+
+            
+        	int maxLength = 0;
+        	for (String linea : lineas) {
+        	    maxLength = Math.max(maxLength, linea.length());
+        	}
+
+        	for (String linea : lineas) {
+        	    System.out.println("|| " + String.format("%-" + maxLength + "s", linea) + " ||");
+        	}
             
         } catch (Exception e) {
             System.err.println("Error al buscar juego: " + e.getMessage());

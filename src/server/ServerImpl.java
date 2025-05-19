@@ -322,6 +322,7 @@ public class ServerImpl implements InterfazDeServer {
     	}
     }
     
+    
     public void conectarBD() {
         try {
             if (connection == null || connection.isClosed()) {
@@ -339,11 +340,16 @@ public class ServerImpl implements InterfazDeServer {
             ResultSet resultados = query.executeQuery(sql);
             BD_juegos.clear();
 
+            int cont = 0;
             while (resultados.next()) {
                 int id = resultados.getInt("id");
-                String nombre = resultados.getString("nombre");
+               String nombre = resultados.getString("nombre");
                 BD_juegos.add(new Juego(nombre, id));
-                System.out.println("cargado: " + id + " - " + nombre);
+                
+                cont += 1;
+                System.out.printf(" || %-10s || %-65s", "cargado:", id + " - " + nombre);
+                if (cont % 2 == 0)
+                	System.out.println();
             }
             
             System.out.println("\nJUEGOS CARGADOS");
@@ -355,11 +361,16 @@ public class ServerImpl implements InterfazDeServer {
             ResultSet resultados2 = query2.executeQuery(sql2);
             BD_paises.clear();
 
+            cont = 0;
             while (resultados2.next()) {
                 String id = resultados2.getString("country_code");
                 String nombre = resultados2.getString("country_name");
                 BD_paises.add(new Pais(nombre, id));
-                System.out.println("cargado: " + id + " - " + nombre);
+                
+                cont += 1;
+                System.out.printf(" || %-10s || %-65s", "cargado:", id + " - " + nombre);          
+                if (cont % 2 == 0)
+                	System.out.println();
             }
 
             System.out.println("\nPAÍSES CARGADOS");
@@ -371,11 +382,15 @@ public class ServerImpl implements InterfazDeServer {
 	        ResultSet resultados3 = query3.executeQuery(sql3);
 	        BD_moneda.clear();
 	
+	        cont = 0;
 	        while (resultados3.next()) {
 	            String id = resultados3.getString("currency_code");
 	            double USDRatio = resultados3.getDouble("conversion_rate_to_usd");
 	            BD_moneda.add(new Moneda(id, USDRatio));
-                System.out.println("cargado: " + id + " - " + USDRatio);
+                cont += 1;
+	            System.out.printf(" || %-10s || %-65s", "cargado:", id + " - " + USDRatio);
+	            if (cont % 2 == 0)
+                	System.out.println();
 	        }
 	        System.out.println("\nMONEDAS CARGADAS");
             
