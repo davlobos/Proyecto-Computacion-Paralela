@@ -14,21 +14,21 @@ public class Client {
 
     public void startClient() {
         try {
-            // Conexión con el servidor RMI
             Registry registry = LocateRegistry.getRegistry("localhost", 1009);
             server = (InterfazDeServer) registry.lookup("server");
 
             Scanner sc = new Scanner(System.in);
             int opcion = -1;
 
-            // Menú de opciones
+            
+            
             while (opcion != 0) {
                 System.out.println("\n======= CLIENTE RMI =======");
                 System.out.println("[1] Ver lista de juegos");
                 System.out.println("[2] Añadir nuevo juego");
                 System.out.println("[3] Buscar juego por nombre");
-                System.out.println("[4] Comparar precio de juego en otra región distinta a la local");
-                System.out.println("[5] Comparar precio de juego en 10 regiones");
+                System.out.println("[4] Comparar precio de juego en otro país distinto al local");
+                System.out.println("[5] Comparar precio de juego en 10 países");
                 System.out.println("[0] Finalizar programa");
                 System.out.print("Ingrese una opción: ");
 
@@ -41,7 +41,6 @@ public class Client {
                     continue;
                 }
 
-                // Ejecutar según la opción seleccionada
                 switch (opcion) {
                     case 1:
                         listarJuegos();
@@ -66,6 +65,8 @@ public class Client {
                 }
             }
 
+            
+            server.cerrarConexion();
             sc.close();
         } catch (Exception e) {
             System.err.println("💥 Error al iniciar cliente: " + e.getMessage());
@@ -73,7 +74,7 @@ public class Client {
         }
     }
 
-    // Método para listar los juegos registrados
+    
     private void listarJuegos() {
         try {
             ArrayList<Juego> games = server.obtenerJuegos(); // Llamamos al método obtenerJuegos()
@@ -90,34 +91,36 @@ public class Client {
         }
     }
 
-    // Método para agregar un nuevo juego
     private void agregarJuego(Scanner sc) {
         try {
             System.out.print("Ingrese nombre del juego: ");
             String nombre = sc.nextLine();
 
-            // Creamos un objeto Juego con el nombre ingresado
-            Juego newGames = new Juego(nombre, 0);
+            System.out.print("Ingrese id del juego: ");
+            int id = Integer.parseInt(sc.nextLine());
 
-            // Llamamos al método del servidor para agregar el juego
-            newGames = server.agregarJuego(newGames);
-            if (newGames != null) {
-                System.out.println("✅ Juego añadido exitosamente con ID: " + newGames.getId());
+
+            Juego newGame = new Juego(nombre, id);
+
+            newGame = server.agregarJuego(newGame);
+            
+            if (newGame != null) {
+                System.out.println("✅ Juego añadido exitosamente con ID: " + newGame.getId());
             } else {
                 System.out.println("⚠ El juego no pudo ser añadido.");
             }
         } catch (Exception e) {
-            System.err.println("Error al agregar juego: " + e.getMessage());
+            System.err.println("Error al agregar juego: " + e.getMessage() + ". ID NO VÁLIDA.");
         }
     }
     
-    //Metodo para buscar juego
     private void buscarJuego(Scanner sc) {
         try {
             System.out.print("Ingrese el nombre del juego a buscar: ");
             String nombre = sc.nextLine();
 
             Juego juego = server.buscarJuego(nombre);
+            
             if (juego != null) {
                 System.out.println("Juego encontrado: " + juego.getNombre() + " (ID: " + juego.getId() + ")");
             } else {
@@ -129,7 +132,6 @@ public class Client {
     }
     
     
-    //Metodo para buscar juego
     private void compararPrecioEnRegion(Scanner sc) {
         try {
             System.out.print("Ingrese el nombre del juego a comparar: ");
@@ -148,11 +150,11 @@ public class Client {
             Pais pais = server.buscarPais(nombre_pais);
             
             
-            double precioLocal = server.getDataFromApiSteam(juego.getId(), "cl");
-            double precioComparativa = server.getDataFromApiSteam(juego.getId(), pais.getId());
+            double precioLocal = server.getPriceFromApiSteam(juego.getId(), "cl");
+            double precioComparativa = server.getPriceFromApiSteam(juego.getId(), pais.getId());
 
-            System.out.println("Precio Local (Chile): " + precioLocal);
-            System.out.println("Precio en "+ pais.getNombre() + ": " + precioComparativa);            
+            System.out.println("Precio Local (Chile): $" + precioLocal + " USD");
+            System.out.println("Precio en " + pais.getNombre() + ": $" + precioComparativa + " USD");            
             
             
             
@@ -160,10 +162,8 @@ public class Client {
             System.err.println("Error al buscar juego: " + e.getMessage());
         }
     }
-    
-    
-    
-    //Metodo para buscar juego
+        
+
     private void compararPrecioEnRegiones(Scanner sc){
         try {
             System.out.print("Ingrese el nombre del juego a comparar: ");
@@ -175,31 +175,32 @@ public class Client {
                 return;
             }
             
+           
             
-            System.out.println("Comparativa");
-            
-            double precioLocal = server.getDataFromApiSteam(juego.getId(), "cl");
-            double precio1 = server.getDataFromApiSteam(juego.getId(), "br");
-            double precio2 = server.getDataFromApiSteam(juego.getId(), "ca");
-            double precio3 = server.getDataFromApiSteam(juego.getId(), "es");
-            double precio4 = server.getDataFromApiSteam(juego.getId(), "in");
-            double precio5 = server.getDataFromApiSteam(juego.getId(), "cn");
-            double precio6 = server.getDataFromApiSteam(juego.getId(), "mx");
-            double precio7 = server.getDataFromApiSteam(juego.getId(), "tr");
-            double precio8 = server.getDataFromApiSteam(juego.getId(), "au");
-            double precio9 = server.getDataFromApiSteam(juego.getId(), "us");
+            double precioLocal = server.getPriceFromApiSteam(juego.getId(), "cl");
+            double precio1 = server.getPriceFromApiSteam(juego.getId(), "br");
+            double precio2 = server.getPriceFromApiSteam(juego.getId(), "ca");
+            double precio3 = server.getPriceFromApiSteam(juego.getId(), "es");
+            double precio4 = server.getPriceFromApiSteam(juego.getId(), "in");
+            double precio5 = server.getPriceFromApiSteam(juego.getId(), "cn");
+            double precio6 = server.getPriceFromApiSteam(juego.getId(), "mx");
+            double precio7 = server.getPriceFromApiSteam(juego.getId(), "tr");
+            double precio8 = server.getPriceFromApiSteam(juego.getId(), "au");
+            double precio9 = server.getPriceFromApiSteam(juego.getId(), "us");
             
             
-            System.out.println("Precio Local (Chile): " + precioLocal);
-            System.out.println("Precio en Brasil: " + precio1);
-            System.out.println("Precio en Canada: " + precio2);
-            System.out.println("Precio en España: " + precio3);
-            System.out.println("Precio en Inglaterra: " + precio4);
-            System.out.println("Precio en China: " + precio5);
-            System.out.println("Precio en Mexico: " + precio6);
-            System.out.println("Precio en Turquía: " + precio7);
-            System.out.println("Precio en Australia: " + precio8);
-            System.out.println("Precio en Estados Unidos : " + precio9);
+            
+            System.out.println("Comparativa de Precios del juego: " + juego.getNombre());
+            System.out.println("Precio Local (Chile): $" + precioLocal + " USD");
+            System.out.println("Precio en Brasil: $" + precio1 + " USD");
+            System.out.println("Precio en Canada: $" + precio2 + " USD");
+            System.out.println("Precio en España: $" + precio3 + " USD");
+            System.out.println("Precio en Inglaterra: $" + precio4 + " USD");
+            System.out.println("Precio en China: $" + precio5 + " USD");
+            System.out.println("Precio en Mexico: $" + precio6 + " USD");
+            System.out.println("Precio en Turquía: $" + precio7 + " USD");
+            System.out.println("Precio en Australia: $" + precio8 + " USD");
+            System.out.println("Precio en Estados Unidos $: " + precio9 + " USD");
             
         } catch (Exception e) {
             System.err.println("Error al buscar juego: " + e.getMessage());
@@ -209,7 +210,7 @@ public class Client {
 
     public static void main(String[] args) {
         Client cliente = new Client();
-        cliente.startClient(); // Iniciar el cliente
+        cliente.startClient();
     }
 }
 
