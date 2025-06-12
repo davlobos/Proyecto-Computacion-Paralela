@@ -22,6 +22,7 @@ import common.InterfazDeServer;
 import common.Juego;
 import common.Pais;
 import common.Moneda;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class ServerImpl implements InterfazDeServer {
@@ -29,6 +30,7 @@ public class ServerImpl implements InterfazDeServer {
     private ArrayList<Pais> BD_paises = new ArrayList<>();
     private ArrayList<Moneda> BD_moneda = new ArrayList<>();
     private Connection connection = null;
+    private final ReentrantLock mutex = new ReentrantLock();
 
     public ServerImpl() throws RemoteException {
         conectarBD();
@@ -187,19 +189,19 @@ public class ServerImpl implements InterfazDeServer {
     }
     
     @Override
-    public void cerrarConexion() throws RemoteException{
-    	actualizarBD();
+    public void cerrarConexion() throws RemoteException {
+    	requestMutex();
         try {
+            actualizarBD();
             if (connection != null && !connection.isClosed()) {
                 connection.close();
                 System.out.println("Conexión cerrada.");
-                
-                
-                
             }
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("Error al cerrar la conexión.");
+        } finally {
+        	releaseMutex();
         }
     }
     
@@ -270,44 +272,52 @@ public class ServerImpl implements InterfazDeServer {
     
     
     @Override
-    public Juego agregarJuego(Juego nuevoJuego) throws RemoteException, JsonProcessingException{
-        String nombreNuevo = nuevoJuego.getNombre();
-        int id = nuevoJuego.getId();
-        
-           	
-        for (Juego juego : BD_juegos) {
-            if (juego.getId() == id) {
-                System.out.println("Ya existe un juego que contiene ese nombre: " + nuevoJuego.getNombre());
-                return null;
-            }
-        }
-        
-        Juego nuevoJuegoDefinitivo = getGameFromApiSteam(id, "cl", nombreNuevo);        
+    public Juego agregarJuego(Juego nuevoJuego) throws RemoteException, JsonProcessingException {
+    	requestMutex();
+        try {
+            String nombreNuevo = nuevoJuego.getNombre();
+            int id = nuevoJuego.getId();
 
-        if (nuevoJuegoDefinitivo != null) {	
-        	
-    	    System.out.println("Juego agregado: " + nuevoJuegoDefinitivo.getNombre());    
-    	    BD_juegos.add(nuevoJuegoDefinitivo);
+            for (Juego juego : BD_juegos) {
+                if (juego.getId() == id) {
+                    System.out.println("Ya existe un juego con ese ID: " + id);
+                    return null;
+                }
+            }
+
+            Juego nuevoJuegoDefinitivo = getGameFromApiSteam(id, "cl", nombreNuevo);        
+
+            if (nuevoJuegoDefinitivo != null) {	
+                System.out.println("Juego agregado: " + nuevoJuegoDefinitivo.getNombre());    
+                BD_juegos.add(nuevoJuegoDefinitivo);
+            }
+
+            return nuevoJuegoDefinitivo;
+        } finally {
+        	mutex.unlock();
         }
-        
-        return nuevoJuegoDefinitivo;
     }
 
-    
     
     @Override
-    public boolean eliminarJuego(String fragmentoNombre) throws RemoteException{
-        for (int i = 0; i < BD_juegos.size(); i++) {
-            Juego juego = BD_juegos.get(i);
-            if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
-                BD_juegos.remove(i);
-                System.out.println("Juego eliminado: " + juego.getNombre());
-                return true;
+    public boolean eliminarJuego(String fragmentoNombre) throws RemoteException {
+    	requestMutex();
+        try {
+            for (int i = 0; i < BD_juegos.size(); i++) {
+                Juego juego = BD_juegos.get(i);
+                if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
+                    BD_juegos.remove(i);
+                    System.out.println("Juego eliminado: " + juego.getNombre());
+                    return true;
+                }
             }
+            System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
+            return false;
+        } finally {
+        	mutex.unlock();
         }
-        System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
-        return false;
     }
+
 
     
     
@@ -406,6 +416,7 @@ public class ServerImpl implements InterfazDeServer {
    
 
     public void actualizarBD() {
+    	requestMutex();
         try {
             Statement stmt = connection.createStatement();
 
@@ -442,13 +453,23 @@ public class ServerImpl implements InterfazDeServer {
             }
 
             System.out.println("Base de datos actualizada correctamente con los datos actuales en memoria.");
-
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println("Error al actualizar la base de datos.");
+        } finally {
+        	releaseMutex();
         }
     }
+    
+    private void requestMutex() {
+        mutex.lock();
+    }
+
+    private void releaseMutex() {
+        mutex.unlock();
+    }
 }
+
 
 
 
