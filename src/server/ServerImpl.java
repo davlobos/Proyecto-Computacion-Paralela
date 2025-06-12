@@ -35,6 +35,9 @@ public class ServerImpl implements InterfazDeServer {
         UnicastRemoteObject.exportObject(this, 0);
     }
     
+    public void heartbeat() throws RemoteException {
+        // No necesita hacer nada.
+    }
 
     @Override
     public double getPriceFromApiSteam(int id_juego, String id_pais) throws RemoteException {

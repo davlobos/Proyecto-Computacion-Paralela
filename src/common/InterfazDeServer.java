@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public interface InterfazDeServer extends Remote {
+	void heartbeat() throws RemoteException;
 	public void cerrarConexion() throws RemoteException;
 	public ArrayList<Juego> obtenerJuegos() throws RemoteException;
     public Juego agregarJuego(Juego juego) throws RemoteException, JsonProcessingException;
