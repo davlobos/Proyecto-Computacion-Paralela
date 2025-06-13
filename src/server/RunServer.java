@@ -12,10 +12,11 @@ public class RunServer {
 	
     public static void main(String[] args) throws RemoteException, AlreadyBoundException {
         try {
+        	System.setProperty("java.rmi.server.hostname", "127.0.0.1");
             InterfazDeServer server = new ServerImpl();
             Registry registry = LocateRegistry.createRegistry(RMI_PORT);
-            registry.bind(RMI_NAME, server);
-            System.out.println("Servidor PRINCIPAL arriba en el puerto " + RMI_PORT);
+            registry.rebind(RMI_NAME, server);
+            System.out.println("✅ Servidor 1 (Principal) arriba en el puerto  " + RMI_PORT);
         } catch (Exception e) {
             System.err.println("Error al iniciar servidor principal: " + e.getMessage());
             e.printStackTrace();
