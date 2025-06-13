@@ -180,9 +180,6 @@ public class ServerImpl implements InterfazDeServer {
     
 
 
-
-
-
     @Override
     public ArrayList<Juego> obtenerJuegos() throws RemoteException {
         return BD_juegos;
@@ -206,36 +203,45 @@ public class ServerImpl implements InterfazDeServer {
     }
     
     @Override
-    public Juego buscarJuego(String fragmentoNombre) throws RemoteException{
-        for (Juego juego : BD_juegos) {
-            if (juego.getNombre().toUpperCase().equals(fragmentoNombre.toUpperCase())) {
-                return juego;
+    public Juego buscarJuego(String fragmentoNombre) throws RemoteException {
+        requestMutex();
+        try {
+            System.out.println("Buscando juego, por favor espere... (8 segundos)");
+            try {
+                Thread.sleep(8000);  // Pausa de 8 segundos
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); 
+                System.out.println("La espera fue interrumpida.");
             }
-        }
-        
-        for (Juego juego : BD_juegos) {
-            if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
-                return juego;
-            }
-        }
-        
-        
 
-        
-        for (Juego juego : BD_juegos) {
-    		String primeraPalabra = fragmentoNombre.split(" ")[0];
-    		String palabraLimpia = primeraPalabra.replaceAll("[^a-zA-Z0-9]", "");
-
-    		if (juego.getNombre().toUpperCase().contains(palabraLimpia.toUpperCase())) {
-                return juego;
+            for (Juego juego : BD_juegos) {
+                if (juego.getNombre().toUpperCase().equals(fragmentoNombre.toUpperCase())) {
+                    return juego;
+                }
             }
+
+            for (Juego juego : BD_juegos) {
+                if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
+                    return juego;
+                }
+            }
+
+            for (Juego juego : BD_juegos) {
+                String primeraPalabra = fragmentoNombre.split(" ")[0];
+                String palabraLimpia = primeraPalabra.replaceAll("[^a-zA-Z0-9]", "");
+
+                if (juego.getNombre().toUpperCase().contains(palabraLimpia.toUpperCase())) {
+                    return juego;
+                }
+            }
+
+            System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
+            return null;
+        } finally {
+            releaseMutex();
         }
-			
-			
-        
-        System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
-        return null;
     }
+
 
     
     
@@ -273,8 +279,11 @@ public class ServerImpl implements InterfazDeServer {
     
     @Override
     public Juego agregarJuego(Juego nuevoJuego) throws RemoteException, JsonProcessingException {
-    	requestMutex();
+        requestMutex();
         try {
+            System.out.println("⏳ [agregarJuego] Procesando juego...");
+            Thread.sleep(8000); // Simula operación larga
+
             String nombreNuevo = nuevoJuego.getNombre();
             int id = nuevoJuego.getId();
 
@@ -285,24 +294,30 @@ public class ServerImpl implements InterfazDeServer {
                 }
             }
 
-            Juego nuevoJuegoDefinitivo = getGameFromApiSteam(id, "cl", nombreNuevo);        
+            Juego nuevoJuegoDefinitivo = getGameFromApiSteam(id, "cl", nombreNuevo);
 
-            if (nuevoJuegoDefinitivo != null) {	
-                System.out.println("Juego agregado: " + nuevoJuegoDefinitivo.getNombre());    
+            if (nuevoJuegoDefinitivo != null) {
+                System.out.println("Juego agregado: " + nuevoJuegoDefinitivo.getNombre());
                 BD_juegos.add(nuevoJuegoDefinitivo);
             }
 
             return nuevoJuegoDefinitivo;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return null;
         } finally {
-        	mutex.unlock();
+            releaseMutex();
         }
     }
 
     
     @Override
     public boolean eliminarJuego(String fragmentoNombre) throws RemoteException {
-    	requestMutex();
+        requestMutex();
         try {
+            System.out.println("⏳ [eliminarJuego] Buscando juego a eliminar...");
+            Thread.sleep(8000); // Simula operación larga
+
             for (int i = 0; i < BD_juegos.size(); i++) {
                 Juego juego = BD_juegos.get(i);
                 if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
@@ -313,10 +328,14 @@ public class ServerImpl implements InterfazDeServer {
             }
             System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
             return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
         } finally {
-        	mutex.unlock();
+        	releaseMutex();
         }
     }
+
 
 
     
@@ -416,16 +435,17 @@ public class ServerImpl implements InterfazDeServer {
    
 
     public void actualizarBD() {
-    	requestMutex();
+        requestMutex();
         try {
+            System.out.println("⏳ [actualizarBD] Actualizando base de datos...");
+            Thread.sleep(8000); // Simula operación larga
+
             Statement stmt = connection.createStatement();
 
-            // Limpiar las tablas
             stmt.executeUpdate("DELETE FROM games");
             stmt.executeUpdate("DELETE FROM countries");
             stmt.executeUpdate("DELETE FROM currencies");
 
-            // Insertar juegos
             String insertJuego = "INSERT INTO games (id, nombre) VALUES (?, ?)";
             PreparedStatement psJuego = connection.prepareStatement(insertJuego);
             for (Juego juego : BD_juegos) {
@@ -434,7 +454,6 @@ public class ServerImpl implements InterfazDeServer {
                 psJuego.executeUpdate();
             }
 
-            // Insertar países
             String insertPais = "INSERT INTO countries (country_code, country_name) VALUES (?, ?)";
             PreparedStatement psPais = connection.prepareStatement(insertPais);
             for (Pais pais : BD_paises) {
@@ -443,7 +462,6 @@ public class ServerImpl implements InterfazDeServer {
                 psPais.executeUpdate();
             }
 
-            // Insertar monedas
             String insertMoneda = "INSERT INTO currencies (currency_code, conversion_rate_to_usd) VALUES (?, ?)";
             PreparedStatement psMoneda = connection.prepareStatement(insertMoneda);
             for (Moneda moneda : BD_moneda) {
@@ -453,19 +471,23 @@ public class ServerImpl implements InterfazDeServer {
             }
 
             System.out.println("Base de datos actualizada correctamente con los datos actuales en memoria.");
-        } catch (SQLException e) {
+        } catch (SQLException | InterruptedException e) {
             e.printStackTrace();
             System.out.println("Error al actualizar la base de datos.");
         } finally {
-        	releaseMutex();
+            releaseMutex();
         }
     }
+
     
     private void requestMutex() {
+        System.out.println("Esperando mutex... " + Thread.currentThread().getName());
         mutex.lock();
+        System.out.println("Mutex adquirido por " + Thread.currentThread().getName());
     }
 
     private void releaseMutex() {
+        System.out.println("Mutex liberado por " + Thread.currentThread().getName());
         mutex.unlock();
     }
 }
