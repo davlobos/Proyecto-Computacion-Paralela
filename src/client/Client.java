@@ -84,6 +84,7 @@ public class Client {
             System.out.println("✅ Conectado al servidor de respaldo.");
             System.out.println("--> Presiona Enter para ver el menú actualizado <--");
             this.connectedToPrimary = false;
+            startClient();
         }
     }
     
