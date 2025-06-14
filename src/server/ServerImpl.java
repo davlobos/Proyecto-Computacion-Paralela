@@ -471,6 +471,32 @@ public class ServerImpl implements InterfazDeServer {
             releaseMutex();
         }
     }
+    
+    public boolean actualizarNombreJuego(int idJuego, String nuevoNombre) throws RemoteException {
+        requestMutex();
+        try {
+            System.out.println("[actualizarNombreJuego] Buscando juego a modificar...");
+            Thread.sleep(8000); 
+            
+            for (Juego juego : BD_juegos) {
+                if (juego.getId() == idJuego) {
+                    juego.setNombre(nuevoNombre);
+                    System.out.println("Juego actualizado: " + juego.getId() + " nuevo nombre: " + nuevoNombre);
+                    return true;
+                }
+            }
+            
+            System.out.println("No se encontró un juego con ID: " + idJuego);
+            return false;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return false;
+        } finally {
+            releaseMutex();
+        }
+    }
+
+
   
     
     private void requestMutex() {

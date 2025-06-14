@@ -123,6 +123,7 @@ public class Client {
                 System.out.println("[4] Comparar precio de juego en otro país");
                 System.out.println("[5] Comparar precio de juego en 10 países");
                 System.out.println("[6] Eliminar juego por nombre");
+                System.out.println("[7] Cambiar nombre de un juego");
                 System.out.println("[0] Finalizar programa");
                 System.out.print("Ingrese una opción: ");
     
@@ -142,6 +143,8 @@ public class Client {
                     case 4: compararPrecioEnRegion(sc); break;
                     case 5: compararPrecioEnRegiones(sc); break;
                     case 6: eliminarJuego(sc); break;
+                    case 7: cambiarNombreJuego(sc); break;
+
                     case 0:
                         System.out.println("Cerrando cliente.");
                         running = false;
@@ -344,6 +347,31 @@ public class Client {
             e.printStackTrace();
         }
     }
+    
+    private void cambiarNombreJuego(Scanner sc) {
+        try {
+            System.out.print("Ingresa el ID del juego a modificar: ");
+            int id = Integer.parseInt(sc.nextLine());
+
+            System.out.print("Ingresa el nuevo nombre: ");
+            String nuevoNombre = sc.nextLine();
+
+            boolean actualizado = server.actualizarNombreJuego(id, nuevoNombre);
+
+            if (actualizado) {
+                System.out.println("Nombre del juego actualizado correctamente.");
+            } else {
+                System.out.println("No se encontró un juego con ese ID o no se pudo actualizar.");
+            }
+        } catch (RemoteException e) {
+            System.err.println("Error remoto al intentar actualizar el nombre del juego.");
+            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            System.out.println("El ID debe ser un número válido.");
+        }
+    }
+
+
     
     public static void main(String[] args) {
         Client cliente = new Client();

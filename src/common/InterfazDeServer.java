@@ -18,5 +18,6 @@ public interface InterfazDeServer extends Remote {
     public double convertirPrecioAUSD(double precioLocal, String moneda) throws RemoteException;
     public Moneda buscarMoneda(String id) throws RemoteException;
     public Juego getGameFromApiSteam(int id_juego, String id_pais, String nombre_juego) throws RemoteException, JsonProcessingException ;
+    public boolean actualizarNombreJuego(int idJuego, String nuevoNombre) throws RemoteException;
 
 }
