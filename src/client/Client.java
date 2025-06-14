@@ -122,6 +122,7 @@ public class Client {
                 System.out.println("[3] Buscar juego por nombre");
                 System.out.println("[4] Comparar precio de juego en otro país");
                 System.out.println("[5] Comparar precio de juego en 10 países");
+                System.out.println("[6] Eliminar juego por nombre");
                 System.out.println("[0] Finalizar programa");
                 System.out.print("Ingrese una opción: ");
     
@@ -140,6 +141,7 @@ public class Client {
                     case 3: buscarJuego(sc); break;
                     case 4: compararPrecioEnRegion(sc); break;
                     case 5: compararPrecioEnRegiones(sc); break;
+                    case 6: eliminarJuego(sc); break;
                     case 0:
                         System.out.println("Cerrando cliente.");
                         running = false;
@@ -326,7 +328,23 @@ public class Client {
             System.err.println("Error al comparar precios en múltiples regiones: " + e.getMessage());
         }
     }
-
+    
+    private void eliminarJuego(Scanner sc) {
+        try {
+            System.out.print("Ingresa el nombre del juego a eliminar: ");
+            String nombre = sc.nextLine();
+            boolean eliminado = server.eliminarJuego(nombre);
+            if (eliminado) {
+                System.out.println("Juego eliminado exitosamente.");
+            } else {
+                System.out.println("No se encontró un juego con ese nombre.");
+            }
+        } catch (RemoteException e) {
+            System.err.println("Error remoto al intentar eliminar el juego.");
+            e.printStackTrace();
+        }
+    }
+    
     public static void main(String[] args) {
         Client cliente = new Client();
         cliente.startClient();

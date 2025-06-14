@@ -69,8 +69,6 @@ public class ServerImpl implements InterfazDeServer {
             e.printStackTrace();
         }
         
-        
-        
         ObjectMapper objectMapper = new ObjectMapper();
         
         try {
@@ -109,9 +107,7 @@ public class ServerImpl implements InterfazDeServer {
     }
     
     
-    
-    
-    
+ 
     @Override
     public Juego getGameFromApiSteam(int id_juego, String id_pais, String nombre_juego) throws RemoteException, JsonProcessingException {
         String output = null;
@@ -315,7 +311,7 @@ public class ServerImpl implements InterfazDeServer {
     public boolean eliminarJuego(String fragmentoNombre) throws RemoteException {
         requestMutex();
         try {
-            System.out.println("⏳ [eliminarJuego] Buscando juego a eliminar...");
+            System.out.println("[eliminarJuego] Buscando juego a eliminar...");
             Thread.sleep(8000); // Simula operación larga
 
             for (int i = 0; i < BD_juegos.size(); i++) {
@@ -335,9 +331,6 @@ public class ServerImpl implements InterfazDeServer {
         	releaseMutex();
         }
     }
-
-
-
     
     
     @Override
@@ -478,7 +471,7 @@ public class ServerImpl implements InterfazDeServer {
             releaseMutex();
         }
     }
-
+  
     
     private void requestMutex() {
         System.out.println("Esperando mutex... " + Thread.currentThread().getName());
