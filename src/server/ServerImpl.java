@@ -202,36 +202,30 @@ public class ServerImpl implements InterfazDeServer {
     public Juego buscarJuego(String fragmentoNombre) throws RemoteException {
         requestMutex();
         try {
-            System.out.println("Buscando juego, por favor espere... (8 segundos)");
-            try {
-                Thread.sleep(8000);  // Pausa de 8 segundos
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt(); 
-                System.out.println("La espera fue interrumpida.");
+            System.out.println("Buscando juego en base de datos... (8 segundos)");
+            Thread.sleep(8000);
+
+            String query = "SELECT id, nombre FROM games WHERE UPPER(nombre) LIKE ? LIMIT 1";
+            PreparedStatement ps = connection.prepareStatement(query);
+            ps.setString(1, "%" + fragmentoNombre.toUpperCase() + "%");
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                int id = rs.getInt("id");
+                String nombre = rs.getString("nombre");
+                return new Juego(nombre, id);
+            } else {
+                System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
+                return null;
             }
 
-            for (Juego juego : BD_juegos) {
-                if (juego.getNombre().toUpperCase().equals(fragmentoNombre.toUpperCase())) {
-                    return juego;
-                }
-            }
-
-            for (Juego juego : BD_juegos) {
-                if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
-                    return juego;
-                }
-            }
-
-            for (Juego juego : BD_juegos) {
-                String primeraPalabra = fragmentoNombre.split(" ")[0];
-                String palabraLimpia = primeraPalabra.replaceAll("[^a-zA-Z0-9]", "");
-
-                if (juego.getNombre().toUpperCase().contains(palabraLimpia.toUpperCase())) {
-                    return juego;
-                }
-            }
-
-            System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            System.out.println("La espera fue interrumpida.");
+            return null;
+        } catch (SQLException e) {
+            System.err.println("Error SQL al buscar el juego.");
+            e.printStackTrace();
             return null;
         } finally {
             releaseMutex();
@@ -239,8 +233,7 @@ public class ServerImpl implements InterfazDeServer {
     }
 
 
-    
-    
+
     @Override
     public Pais buscarPais(String fragmentoNombre) throws RemoteException{
         for (Pais pais : BD_paises) {
@@ -272,13 +265,13 @@ public class ServerImpl implements InterfazDeServer {
         return null;
     }
     
-    
+ 
     @Override
     public Juego agregarJuego(Juego nuevoJuego) throws RemoteException, JsonProcessingException {
         requestMutex();
         try {
-            System.out.println("⏳ [agregarJuego] Procesando juego...");
-            Thread.sleep(8000); // Simula operación larga
+            System.out.println("[agregarJuego] Procesando juego...");
+            Thread.sleep(8000); 
 
             String nombreNuevo = nuevoJuego.getNombre();
             int id = nuevoJuego.getId();
@@ -290,21 +283,39 @@ public class ServerImpl implements InterfazDeServer {
                 }
             }
 
+            
             Juego nuevoJuegoDefinitivo = getGameFromApiSteam(id, "cl", nombreNuevo);
 
             if (nuevoJuegoDefinitivo != null) {
                 System.out.println("Juego agregado: " + nuevoJuegoDefinitivo.getNombre());
+            
                 BD_juegos.add(nuevoJuegoDefinitivo);
+           
+                String insertJuego = "INSERT INTO games (id, nombre) VALUES (?, ?)";
+                PreparedStatement ps = connection.prepareStatement(insertJuego);
+                ps.setInt(1, nuevoJuegoDefinitivo.getId());
+                ps.setString(2, nuevoJuegoDefinitivo.getNombre());
+                ps.executeUpdate();
+
+
+                System.out.println("Juego insertado en la base de datos.");
+            }else {
+            	System.out.println("No se pudo obtener información del juego desde la API de Steam.");
             }
 
             return nuevoJuegoDefinitivo;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return null;
+        } catch (SQLException e) {
+            System.err.println("Error SQL al insertar el juego en la base de datos.");
+            e.printStackTrace();
+            return null;
         } finally {
             releaseMutex();
         }
     }
+
 
     
     @Override
@@ -312,25 +323,45 @@ public class ServerImpl implements InterfazDeServer {
         requestMutex();
         try {
             System.out.println("[eliminarJuego] Buscando juego a eliminar...");
-            Thread.sleep(8000); // Simula operación larga
+            Thread.sleep(8000); 
 
             for (int i = 0; i < BD_juegos.size(); i++) {
                 Juego juego = BD_juegos.get(i);
                 if (juego.getNombre().toUpperCase().contains(fragmentoNombre.toUpperCase())) {
+                
+                    String deleteQuery = "DELETE FROM games WHERE id = ?";
+                    PreparedStatement ps = connection.prepareStatement(deleteQuery);
+                    ps.setInt(1, juego.getId());
+                    int filas = ps.executeUpdate();
+
+                    if (filas == 0) {
+                        System.out.println("⚠ No se eliminó nada de la base de datos (puede que ya no existiera).");
+                    } else {
+                        System.out.println("✅ Juego eliminado de la base de datos: " + juego.getNombre());
+                    }
+
+      
                     BD_juegos.remove(i);
-                    System.out.println("Juego eliminado: " + juego.getNombre());
+                    System.out.println("Juego eliminado de memoria: " + juego.getNombre());
                     return true;
                 }
             }
+
             System.out.println("No se encontró un juego que contenga: " + fragmentoNombre);
             return false;
+
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
+        } catch (SQLException e) {
+            System.err.println("💥 Error SQL al eliminar el juego.");
+            e.printStackTrace();
+            return false;
         } finally {
-        	releaseMutex();
+            releaseMutex();
         }
     }
+
     
     
     @Override
@@ -430,7 +461,7 @@ public class ServerImpl implements InterfazDeServer {
     public void actualizarBD() {
         requestMutex();
         try {
-            System.out.println("⏳ [actualizarBD] Actualizando base de datos...");
+            System.out.println("[actualizarBD] Actualizando base de datos...");
             Thread.sleep(8000); // Simula operación larga
 
             Statement stmt = connection.createStatement();
@@ -472,29 +503,45 @@ public class ServerImpl implements InterfazDeServer {
         }
     }
     
+    @Override
     public boolean actualizarNombreJuego(int idJuego, String nuevoNombre) throws RemoteException {
         requestMutex();
         try {
-            System.out.println("[actualizarNombreJuego] Buscando juego a modificar...");
-            Thread.sleep(8000); 
-            
+            System.out.println("[actualizarNombreJuego] Modificando juego en la base de datos...");
+            Thread.sleep(8000);
+
+            String updateQuery = "UPDATE games SET nombre = ? WHERE id = ?";
+            PreparedStatement ps = connection.prepareStatement(updateQuery);
+            ps.setString(1, nuevoNombre);
+            ps.setInt(2, idJuego);
+            int filasAfectadas = ps.executeUpdate();
+
+            if (filasAfectadas == 0) {
+                System.out.println("No se encontró un juego con ID: " + idJuego + " en la base de datos.");
+                return false;
+            }
+
             for (Juego juego : BD_juegos) {
                 if (juego.getId() == idJuego) {
                     juego.setNombre(nuevoNombre);
-                    System.out.println("Juego actualizado: " + juego.getId() + " nuevo nombre: " + nuevoNombre);
-                    return true;
+                    break;
                 }
             }
-            
-            System.out.println("No se encontró un juego con ID: " + idJuego);
-            return false;
+
+            System.out.println("Nombre del juego actualizado correctamente en BD y memoria.");
+            return true;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return false;
+        } catch (SQLException e) {
+            System.err.println("Error SQL al actualizar el nombre del juego.");
+            e.printStackTrace();
             return false;
         } finally {
             releaseMutex();
         }
     }
+
 
 
   
